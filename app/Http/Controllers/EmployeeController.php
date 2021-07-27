@@ -45,10 +45,11 @@ class EmployeeController extends Controller
             'address' => 'required',
             'gender_id' => 'required',
             'status_id' => 'required',
+            'photo' => 'required',
 
         ]);
         if ($validate->fails()) {
-            return redirect()->back()->withErrors()->withInput();
+            return redirect()->back()->withErrors($validate)->withInput();
         }
         $file_extension = $request->photo->getClientOriginalExtension();
         $file_name = time() . '.' . $file_extension;
@@ -70,46 +71,53 @@ class EmployeeController extends Controller
 
 
         $employee = Employee::create($data);
-
-        $university = new University([
-            'qualification' => $request->qualification,
-            'major' => $request->major,
-            'university_name' => $request->university_name,
-            'specialization_history' => $request->specialization_history
-        ]);
-        $employee->universities()->save($university);
-
-        $course = new Course([
-            'course_name' => $request->course_name,
-            'place' => $request->place,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'description' => $request->description,
-        ]);
-        $employee->courses()->save($course);
-
-        $experience = new Experince([
-            'work_place' => $request->work_place,
-            'job_title' => $request->job_title,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date,
-            'salary' => $request->salary,
-            'description' => $request->description,
-        ]);
-        $employee->experiences()->save($experience);
+        if ($request->university_name) {
+            $university = new University([
+                'qualification' => $request->qualification,
+                'major' => $request->major,
+                'university_name' => $request->university_name,
+                'specialization_history' => $request->specialization_history
+            ]);
+            $employee->universities()->save($university);
+        }
 
 
-        $family = new Family([
+        if ($request->course_name) {
+            $course = new Course([
+                'course_name' => $request->course_name,
+                'place' => $request->place,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'description' => $request->description,
+            ]);
+            $employee->courses()->save($course);
+        }
 
-            'family_name' => $request->family_name,
-            'id_number' => $request->id_number,
-            'relative_relation' => $request->relative_relation,
-            'birthdate' => $request->birthdate,
-            'is_study' => $request->is_study,
-            'is_work' => $request->is_work,
-            'status_id' => $request->status_id,
-        ]);
-        $employee->families()->save($family);
+        if ($request->work_place) {
+            $experience = new Experince([
+                'work_place' => $request->work_place,
+                'job_title' => $request->job_title,
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'salary' => $request->salary,
+                'description' => $request->description,
+            ]);
+            $employee->experiences()->save($experience);
+        }
+
+        if ($request->family_name) {
+            $family = new Family([
+
+                'family_name' => $request->family_name,
+                'id_number' => $request->id_number,
+                'relative_relation' => $request->relative_relation,
+                'birthdate' => $request->birthdate,
+                'is_study' => $request->is_study,
+                'is_work' => $request->is_work,
+                'status_id' => $request->status_id,
+            ]);
+            $employee->families()->save($family);
+        }
 
 
         return redirect()->route('all_employees')->with([
@@ -120,7 +128,7 @@ class EmployeeController extends Controller
 
     public function edit($employee_id)
     {
-        $employee = Employee::where('id', $employee_id)->with(['universities'])->first();
+        $employee = Employee::find($employee_id);
         $genders = Gender::all()->pluck('name', 'id');
         $statuses = Status::all()->pluck('status', 'id');
 
@@ -142,6 +150,7 @@ class EmployeeController extends Controller
             'address' => 'required',
             'gender_id' => 'required',
             'status_id' => 'required',
+            'photo' => 'required',
 
         ]);
         if ($validate->fails()) {
@@ -153,7 +162,7 @@ class EmployeeController extends Controller
         $path = 'images/employees';
         $request->photo->move($path, $file_name);
 
-        $employee = Employee::whereId($employee_id)->first();
+        $employee = Employee::find($employee_id);
         if ($employee) {
             $data['name'] = $request->name;
             $data['job_number'] = $request->job_number;
@@ -223,12 +232,9 @@ class EmployeeController extends Controller
 
     public function destroy($employee_id)
     {
-        $employee = Employee::whereId($employee_id)->first();
+        $employee = Employee::find($employee_id)->delete();
 
         if ($employee) {
-            $employee->delete();
-
-
             return redirect()->back()->with([
                 'message' => 'Employee deleted successfully',
                 'alert-type' => 'success',
@@ -236,7 +242,7 @@ class EmployeeController extends Controller
 
         } else {
             return redirect()->back()->with([
-                'message' => 'Something was wrong',
+                'message' => 'Something Was Wrong',
                 'alert-type' => 'danger',
             ]);
         }

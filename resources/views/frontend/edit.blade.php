@@ -138,6 +138,7 @@
                                 @error('specialization_history')<span class="text-danger">{{ $message }}</span>@enderror
                             </div>
                         </section>
+                        {{$employee->courses}}
                         <input name="id" value="{{$employee->courses[0]->id}}" type="hidden">
                         <h3>الدورات</h3>
                         <section>
